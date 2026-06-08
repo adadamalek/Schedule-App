@@ -1,0 +1,504 @@
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.app{padding:1rem 0}
+.header{background:linear-gradient(135deg,#7F77DD,#D4537E);border-radius:var(--border-radius-lg);padding:1.25rem;margin-bottom:1rem;color:#fff}
+.header h1{font-size:20px;font-weight:500;margin-bottom:2px}
+.header p{font-size:13px;opacity:0.85}
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:1rem}
+.stat-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:0.75rem 1rem}
+.stat-label{font-size:12px;color:var(--color-text-secondary);margin-bottom:4px}
+.stat-value{font-size:22px;font-weight:500;color:var(--color-text-primary)}
+.stat-sub{font-size:11px;color:var(--color-text-tertiary);margin-top:2px}
+.progress-bar{height:6px;background:var(--color-background-secondary);border-radius:3px;margin:0.75rem 0;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#7F77DD,#D4537E);transition:width 0.4s}
+.section-title{font-size:13px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.05em;margin:1.25rem 0 0.5rem}
+.day-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);margin-bottom:8px;overflow:hidden;cursor:pointer}
+.day-card.completed{border-color:#1D9E75;border-left:3px solid #1D9E75}
+.day-card.active{border-color:#7F77DD;border-left:3px solid #7F77DD}
+.day-card.exam{border-color:#D85A30;border-left:3px solid #D85A30}
+.day-card.rest{border-left:3px solid #888780}
+.day-header{display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1rem}
+.day-meta{display:flex;align-items:center;gap:10px}
+.day-num{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
+.day-num.completed{background:#E1F5EE;color:#0F6E56}
+.day-num.active{background:#EEEDFE;color:#534AB7}
+.day-num.exam{background:#FAECE7;color:#993C1D}
+.day-num.rest{background:var(--color-background-secondary);color:var(--color-text-secondary)}
+.day-num.upcoming{background:var(--color-background-secondary);color:var(--color-text-secondary)}
+.day-info{}
+.day-date{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.day-subtitle{font-size:12px;color:var(--color-text-secondary);margin-top:1px}
+.day-badge{font-size:11px;padding:3px 8px;border-radius:20px;font-weight:500;flex-shrink:0}
+.badge-exam{background:#FAECE7;color:#993C1D}
+.badge-class{background:#EEEDFE;color:#534AB7}
+.badge-rest{background:var(--color-background-secondary);color:var(--color-text-secondary)}
+.badge-done{background:#E1F5EE;color:#0F6E56}
+.badge-quiz{background:#FAEEDA;color:#854F0B}
+.day-body{padding:0 1rem 0.75rem;border-top:0.5px solid var(--color-border-tertiary)}
+.schedule-item{display:flex;gap:10px;padding:5px 0;align-items:flex-start}
+.time-tag{font-size:11px;color:var(--color-text-secondary);width:90px;flex-shrink:0;padding-top:1px;font-variant-numeric:tabular-nums}
+.task-text{font-size:13px;color:var(--color-text-primary);flex:1;line-height:1.4}
+.task-check{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--color-border-secondary);flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;margin-top:1px}
+.task-check.checked{background:#1D9E75;border-color:#1D9E75;color:#fff}
+.task-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.dot-exercise{background:#D4537E}
+.dot-study{background:#7F77DD}
+.dot-break{background:#888780}
+.dot-class{background:#D85A30}
+.dot-exam{background:#D85A30}
+.dot-dinner{background:#BA7517}
+.dot-rest{background:#888780}
+.chevron{transition:transform 0.2s;color:var(--color-text-tertiary);font-size:16px}
+.chevron.open{transform:rotate(180deg)}
+.week-divider{font-size:12px;font-weight:500;color:var(--color-text-secondary);padding:0.5rem 0;display:flex;align-items:center;gap:8px}
+.week-divider::after{content:'';flex:1;height:0.5px;background:var(--color-border-tertiary)}
+.tab-bar{display:flex;gap:6px;margin-bottom:1rem}
+.tab{flex:1;padding:8px;text-align:center;font-size:13px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);cursor:pointer;color:var(--color-text-secondary);background:transparent;transition:all 0.15s}
+.tab.active{background:#EEEDFE;color:#534AB7;border-color:#AFA9EC;font-weight:500}
+.overview-section{display:none}
+.overview-section.visible{display:block}
+.subject-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem;margin-bottom:8px}
+.subject-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.subject-name{font-size:15px;font-weight:500}
+.subject-date{font-size:12px;color:var(--color-text-secondary)}
+.mini-bar{height:8px;background:var(--color-background-secondary);border-radius:4px;overflow:hidden;margin:6px 0}
+.mini-fill-214{height:100%;background:linear-gradient(90deg,#7F77DD,#AFA9EC);border-radius:4px;transition:width 0.4s}
+.mini-fill-221{height:100%;background:linear-gradient(90deg,#D4537E,#ED93B1);border-radius:4px;transition:width 0.4s}
+.tip-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:0.75rem 1rem;margin-bottom:8px;font-size:13px;color:var(--color-text-secondary);line-height:1.5}
+</style>
+
+<div class="app">
+<div class="header">
+  <h1><i class="ti ti-school" aria-hidden="true"></i> Malek's study app</h1>
+  <p>June 8 – June 27, 2026 · Finals season</p>
+</div>
+
+<div class="tab-bar">
+  <button class="tab active" onclick="switchTab('schedule')"><i class="ti ti-calendar" aria-hidden="true"></i> Schedule</button>
+  <button class="tab" onclick="switchTab('progress')"><i class="ti ti-chart-bar" aria-hidden="true"></i> Progress</button>
+  <button class="tab" onclick="switchTab('tips')"><i class="ti ti-bulb" aria-hidden="true"></i> Tips</button>
+</div>
+
+<div id="tab-schedule" class="overview-section visible">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Days completed</div>
+      <div class="stat-value" id="days-done">0</div>
+      <div class="stat-sub">of 20 days</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Days remaining</div>
+      <div class="stat-value" id="days-left">20</div>
+      <div class="stat-sub">until Jun 27</div>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="main-progress" style="width:0%"></div></div>
+  <div id="days-list"></div>
+</div>
+
+<div id="tab-progress" class="overview-section">
+  <p class="section-title">Exams</p>
+  <div class="subject-card">
+    <div class="subject-header">
+      <span class="subject-name" style="color:#534AB7">COMM 214 — Business Analytics</span>
+      <span class="subject-date">Jun 25 · 9 AM</span>
+    </div>
+    <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:4px">Study tasks completed</div>
+    <div class="mini-bar"><div class="mini-fill-214" id="bar-214" style="width:0%"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--color-text-secondary)">
+      <span id="pct-214">0%</span><span>Room H423</span>
+    </div>
+  </div>
+  <div class="subject-card">
+    <div class="subject-header">
+      <span class="subject-name" style="color:#993556">COMM 221 — Financial Markets</span>
+      <span class="subject-date">Jun 27 · 2 PM</span>
+    </div>
+    <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:4px">Study tasks completed</div>
+    <div class="mini-bar"><div class="mini-fill-221" id="bar-221" style="width:0%"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--color-text-secondary)">
+      <span id="pct-221">0%</span><span>Room H407</span>
+    </div>
+  </div>
+  <p class="section-title">Exercise streak</p>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Sessions done</div>
+      <div class="stat-value" id="ex-done">0</div>
+      <div class="stat-sub">of 20 sessions</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Rest days taken</div>
+      <div class="stat-value" id="rest-done">0</div>
+      <div class="stat-sub">Mon & Wed each week</div>
+    </div>
+  </div>
+  <p class="section-title">Overall progress</p>
+  <div class="subject-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:14px;font-weight:500">All study tasks</span>
+      <span style="font-size:13px;color:var(--color-text-secondary)" id="total-pct">0% done</span>
+    </div>
+    <div class="mini-bar" style="height:10px"><div id="bar-total" style="height:100%;background:linear-gradient(90deg,#7F77DD,#D4537E);border-radius:4px;width:0%;transition:width 0.4s"></div></div>
+  </div>
+</div>
+
+<div id="tab-tips" class="overview-section">
+  <p class="section-title">Study tips</p>
+  <div class="tip-card"><i class="ti ti-brain" aria-hidden="true" style="color:#534AB7"></i> <strong>Pomodoro method:</strong> Study for 90 min, break for 30 min. Your schedule already follows this rhythm — stick to it.</div>
+  <div class="tip-card"><i class="ti ti-moon" aria-hidden="true" style="color:#185FA5"></i> <strong>Sleep matters:</strong> Even with a 2 AM bedtime, protect your 8 hours. Don't cut sleep to study — it backfires on retention.</div>
+  <div class="tip-card"><i class="ti ti-dumbbell" aria-hidden="true" style="color:#D4537E"></i> <strong>Exercise = memory boost:</strong> Your 10:30 AM workout primes your brain for the morning study blocks. Don't skip it.</div>
+  <div class="tip-card"><i class="ti ti-repeat" aria-hidden="true" style="color:#1D9E75"></i> <strong>Active recall:</strong> Don't just re-read notes. Close them and write what you remember. Especially for COMM 214 tutorials.</div>
+  <div class="tip-card"><i class="ti ti-mood-happy" aria-hidden="true" style="color:#BA7517"></i> <strong>Rest days are productive:</strong> Mon & Wed rest days help consolidate memory. Light study is fine — just no gym.</div>
+  <div class="tip-card"><i class="ti ti-clock" aria-hidden="true" style="color:#993C1D"></i> <strong>Exam morning:</strong> Wake up at 8 AM on Jun 25 (COMM 214). Eat breakfast, review light notes only — no cramming.</div>
+</div>
+</div>
+
+<script>
+function to12(t){
+  if(!t||t==='17:00+') return t==='17:00+'?'5:00 PM+':t;
+  return t.split('-').map(part=>{
+    const [h,m]=part.split(':').map(Number);
+    const ampm=h<12?'AM':'PM';
+    const h12=h===0?12:h>12?h-12:h;
+    return m===0?`${h12} ${ampm}`:`${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+  }).join('–');
+}
+
+const DAYS=[
+  {n:1,date:"Mon, Jun 8",type:"rest",label:"Rest day",badge:"rest",tasks:[
+    {time:"10:00-10:30",text:"Wake up & breakfast",dot:"rest"},
+    {time:"10:30-11:30",text:"Light study or relax",dot:"rest"},
+    {time:"12:00-13:30",text:"Study Block 1: COMM 214 & 221",dot:"study",sub214:1,sub221:1},
+    {time:"13:30-14:00",text:"Break — snack & stretch",dot:"break"},
+    {time:"14:00-15:30",text:"Study Block 2: COMM 214 & 221",dot:"study",sub214:1,sub221:1},
+    {time:"17:00-19:00",text:"Study Block 3: COMM 214 & 221",dot:"study",sub214:1,sub221:1},
+    {time:"19:00-20:00",text:"Dinner break",dot:"dinner"},
+    {time:"20:00-22:00",text:"Study Block 4: light review",dot:"study",sub214:1,sub221:1},
+    {time:"22:30-00:30",text:"Study Block 5: late prep",dot:"study",sub214:1,sub221:1}
+  ]},
+  {n:2,date:"Tue, Jun 9",type:"normal",label:"Exercise + study",badge:null,tasks:[
+    {time:"10:00-10:30",text:"Wake up & breakfast",dot:"rest"},
+    {time:"10:30-11:30",text:"Exercise",dot:"exercise",ex:1},
+    {time:"11:30-12:00",text:"Buffer — shower & freshen up",dot:"break"},
+    {time:"12:30-14:00",text:"Study Block 1: COMM 214 & 221",dot:"study",sub214:1,sub221:1},
+    {time:"14:30-16:00",text:"Study Block 2: COMM 214 & 221",dot:"study",sub214:1,sub221:1},
+    {time:"17:00-19:00",text:"Study Block 3: COMM 214 & 221",dot:"study",sub214:1,sub221:1},
+    {time:"19:00-20:00",text:"Dinner break",dot:"dinner"},
+    {time:"20:00-22:00",text:"Study Block 4: light review",dot:"study",sub214:1,sub221:1},
+    {time:"22:30-00:30",text:"Study Block 5: late prep",dot:"study",sub214:1,sub221:1}
+  ]},
+  {n:3,date:"Wed, Jun 10",type:"class",label:"Class day · Rest",badge:"class",tasks:[
+    {time:"10:00-10:30",text:"Wake up & breakfast",dot:"rest"},
+    {time:"10:30-11:30",text:"Light study or relax",dot:"rest"},
+    {time:"11:45-14:30",text:"CLASS: COMM 221",dot:"class"},
+    {time:"14:30-15:00",text:"Transport home",dot:"break"},
+    {time:"15:00-17:00",text:"Study Block 1: COMM 214 focus",dot:"study",sub214:2},
+    {time:"17:00-19:00",text:"Study Block 2: COMM 221 focus",dot:"study",sub221:2},
+    {time:"19:00-20:00",text:"Dinner break",dot:"dinner"},
+    {time:"20:00-22:00",text:"Study Block 3: light review",dot:"study",sub214:1,sub221:1},
+    {time:"22:30-00:30",text:"Study Block 4: late prep",dot:"study",sub214:1,sub221:1}
+  ]},
+  {n:4,date:"Thu, Jun 11",type:"normal",label:"Exercise + study",badge:null,tasks:[
+    {time:"10:00-10:30",text:"Wake up & breakfast",dot:"rest"},
+    {time:"10:30-11:30",text:"Exercise",dot:"exercise",ex:1},
+    {time:"12:30-14:00",text:"Study Block 1: COMM 214 & 221",dot:"study",sub214:1,sub221:1},
+    {time:"14:30-16:00",text:"Study Block 2: COMM 214 & 221",dot:"study",sub214:1,sub221:1},
+    {time:"17:00-19:00",text:"Study Block 3: COMM 214 & 221",dot:"study",sub214:1,sub221:1},
+    {time:"19:00-20:00",text:"Dinner break",dot:"dinner"},
+    {time:"20:00-22:00",text:"Study Block 4: light review",dot:"study",sub214:1,sub221:1},
+    {time:"22:30-00:30",text:"Late prep",dot:"study",sub214:1,sub221:1}
+  ]},
+  {n:5,date:"Fri, Jun 12",type:"normal",label:"Exercise + study",badge:null,tasks:[
+    {time:"10:00-10:30",text:"Wake up & breakfast",dot:"rest"},
+    {time:"10:30-11:30",text:"Exercise",dot:"exercise",ex:1},
+    {time:"12:30-14:00",text:"Study Block 1: COMM 214 & 221",dot:"study",sub214:1,sub221:1},
+    {time:"14:30-16:00",text:"Study Block 2: COMM 214 & 221",dot:"study",sub214:1,sub221:1},
+    {time:"17:00-19:00",text:"Study Block 3: COMM 214 & 221",dot:"study",sub214:1,sub221:1},
+    {time:"19:00-20:00",text:"Dinner break",dot:"dinner"},
+    {time:"20:00-22:00",text:"Study Block 4: light review",dot:"study",sub214:1,sub221:1},
+    {time:"22:30-00:30",text:"Late prep",dot:"study",sub214:1,sub221:1}
+  ]},
+  {n:6,date:"Sat, Jun 13",type:"normal",label:"Exercise + study",badge:null,tasks:[
+    {time:"10:00-10:30",text:"Wake up & breakfast",dot:"rest"},
+    {time:"10:30-11:30",text:"Exercise",dot:"exercise",ex:1},
+    {time:"12:30-14:00",text:"Study Block 1: COMM 214 & 221",dot:"study",sub214:1,sub221:1},
+    {time:"14:30-16:00",text:"Study Block 2: COMM 214 & 221",dot:"study",sub214:1,sub221:1},
+    {time:"17:00-19:00",text:"Study Block 3: COMM 214 & 221",dot:"study",sub214:1,sub221:1},
+    {time:"19:00-20:00",text:"Dinner break",dot:"dinner"},
+    {time:"20:00-22:00",text:"Study Block 4: light review",dot:"study",sub214:1,sub221:1},
+    {time:"22:30-00:30",text:"Late prep",dot:"study",sub214:1,sub221:1}
+  ]},
+  {n:7,date:"Sun, Jun 14",type:"normal",label:"Exercise + Quiz 4 prep",badge:null,tasks:[
+    {time:"10:00-10:30",text:"Wake up & breakfast",dot:"rest"},
+    {time:"10:30-11:30",text:"Exercise",dot:"exercise",ex:1},
+    {time:"12:30-14:00",text:"Study Block 1: light COMM 221 prep",dot:"study",sub221:2},
+    {time:"14:30-16:00",text:"Study Block 2: Quiz 4 prep",dot:"study",sub221:2},
+    {time:"17:00-19:00",text:"Study Block 3: Quiz review",dot:"study",sub221:2},
+    {time:"19:00-20:00",text:"Dinner break",dot:"dinner"},
+    {time:"20:00-22:00",text:"Study Block 4: light review",dot:"study",sub221:2},
+    {time:"22:30-00:30",text:"Late prep",dot:"study",sub221:2}
+  ]},
+  {n:8,date:"Mon, Jun 15",type:"exam",label:"Quiz 4 + Class · Rest",badge:"quiz",tasks:[
+    {time:"10:00-10:30",text:"Wake up & breakfast",dot:"rest"},
+    {time:"10:30-11:30",text:"Quiz 4: COMM 221",dot:"exam"},
+    {time:"11:30-11:45",text:"Transport to campus",dot:"break"},
+    {time:"11:45-14:30",text:"CLASS: COMM 221",dot:"class"},
+    {time:"14:30-15:00",text:"Transport home",dot:"break"},
+    {time:"15:00-17:00",text:"Study Block 1: light study",dot:"study",sub221:1},
+    {time:"17:00-19:00",text:"Study Block 2: COMM 221 focus",dot:"study",sub221:2},
+    {time:"19:00-20:00",text:"Dinner break",dot:"dinner"},
+    {time:"20:00-22:00",text:"Study Block 3: evening prep",dot:"study",sub221:2},
+    {time:"22:30-00:30",text:"Late prep",dot:"study",sub221:2}
+  ]},
+  {n:9,date:"Tue, Jun 16",type:"normal",label:"Exercise + study",badge:null,tasks:[
+    {time:"10:00-10:30",text:"Wake up & breakfast",dot:"rest"},
+    {time:"10:30-11:30",text:"Exercise",dot:"exercise",ex:1},
+    {time:"12:30-14:00",text:"Study Block 1: COMM 221 heavy focus",dot:"study",sub221:2},
+    {time:"14:30-16:00",text:"Study Block 2: COMM 221 heavy focus",dot:"study",sub221:2},
+    {time:"17:00-19:00",text:"Study Block 3: COMM 221 focus",dot:"study",sub221:2},
+    {time:"19:00-20:00",text:"Dinner break",dot:"dinner"},
+    {time:"20:00-22:00",text:"Study Block 4: light review",dot:"study",sub221:2},
+    {time:"22:30-00:30",text:"Late prep",dot:"study",sub221:2}
+  ]},
+  {n:10,date:"Wed, Jun 17",type:"class",label:"Class day · Rest",badge:"class",tasks:[
+    {time:"10:00-10:30",text:"Wake up & breakfast",dot:"rest"},
+    {time:"10:30-11:30",text:"Light study or relax",dot:"rest"},
+    {time:"11:45-14:30",text:"CLASS: COMM 221",dot:"class"},
+    {time:"14:30-15:00",text:"Transport home",dot:"break"},
+    {time:"15:00-17:00",text:"Study Block 1: COMM 221 intensive",dot:"study",sub221:2},
+    {time:"17:00-19:00",text:"Study Block 2: COMM 221 focus",dot:"study",sub221:2},
+    {time:"19:00-20:00",text:"Dinner break",dot:"dinner"},
+    {time:"20:00-22:00",text:"Study Block 3: evening prep",dot:"study",sub221:2},
+    {time:"22:30-00:30",text:"Late prep",dot:"study",sub221:2}
+  ]},
+  {n:11,date:"Thu, Jun 18",type:"normal",label:"Exercise + study",badge:null,tasks:[
+    {time:"10:00-10:30",text:"Wake up & breakfast",dot:"rest"},
+    {time:"10:30-11:30",text:"Exercise",dot:"exercise",ex:1},
+    {time:"12:30-14:00",text:"Study Block 1: COMM 221 intensive",dot:"study",sub221:2},
+    {time:"14:30-16:00",text:"Study Block 2: COMM 221 intensive",dot:"study",sub221:2},
+    {time:"17:00-19:00",text:"Study Block 3: COMM 221 focus",dot:"study",sub221:2},
+    {time:"19:00-20:00",text:"Dinner break",dot:"dinner"},
+    {time:"20:00-22:00",text:"Study Block 4: light review",dot:"study",sub221:2},
+    {time:"22:30-00:30",text:"Late prep",dot:"study",sub221:2}
+  ]},
+  {n:12,date:"Fri, Jun 19",type:"normal",label:"Exercise + study",badge:null,tasks:[
+    {time:"10:00-10:30",text:"Wake up & breakfast",dot:"rest"},
+    {time:"10:30-11:30",text:"Exercise",dot:"exercise",ex:1},
+    {time:"12:30-14:00",text:"Study Block 1: COMM 221 review",dot:"study",sub221:2},
+    {time:"14:30-16:00",text:"Study Block 2: COMM 221 review",dot:"study",sub221:2},
+    {time:"17:00-19:00",text:"Study Block 3: COMM 221 focus",dot:"study",sub221:2},
+    {time:"19:00-20:00",text:"Dinner break",dot:"dinner"},
+    {time:"20:00-22:00",text:"Study Block 4: light review",dot:"study",sub221:2},
+    {time:"22:30-00:30",text:"Late prep",dot:"study",sub221:2}
+  ]},
+  {n:13,date:"Sat, Jun 20",type:"normal",label:"Exercise + practice exam",badge:null,tasks:[
+    {time:"10:00-10:30",text:"Wake up & breakfast",dot:"rest"},
+    {time:"10:30-11:30",text:"Exercise",dot:"exercise",ex:1},
+    {time:"12:30-14:00",text:"Study Block 1: COMM 221 practice exam",dot:"study",sub221:2},
+    {time:"14:30-16:00",text:"Study Block 2: COMM 221 practice exam",dot:"study",sub221:2},
+    {time:"17:00-19:00",text:"Study Block 3: COMM 221 review",dot:"study",sub221:2},
+    {time:"19:00-20:00",text:"Dinner break",dot:"dinner"},
+    {time:"20:00-22:00",text:"Study Block 4: light review",dot:"study",sub221:2},
+    {time:"22:30-00:30",text:"Late prep",dot:"study",sub221:2}
+  ]},
+  {n:14,date:"Sun, Jun 21",type:"normal",label:"Exercise + light review",badge:null,tasks:[
+    {time:"10:00-10:30",text:"Wake up & breakfast",dot:"rest"},
+    {time:"10:30-11:30",text:"Exercise",dot:"exercise",ex:1},
+    {time:"12:30-14:00",text:"Study Block 1: COMM 221 light review",dot:"study",sub221:2},
+    {time:"14:30-16:00",text:"Study Block 2: COMM 221 light review",dot:"study",sub221:2},
+    {time:"17:00-19:00",text:"Study Block 3: light review",dot:"study",sub221:2},
+    {time:"19:00-20:00",text:"Dinner break",dot:"dinner"},
+    {time:"20:00-22:00",text:"Study Block 4: wind down",dot:"study",sub221:1},
+    {time:"22:30-00:30",text:"Late prep",dot:"study",sub221:1}
+  ]},
+  {n:15,date:"Mon, Jun 22",type:"rest",label:"Rest day",badge:"rest",tasks:[
+    {time:"10:00-10:30",text:"Wake up & breakfast",dot:"rest"},
+    {time:"10:30-11:30",text:"Light study or relax",dot:"rest"},
+    {time:"12:30-14:00",text:"Study Block 1: COMM 221 final review",dot:"study",sub221:2},
+    {time:"14:30-16:00",text:"Study Block 2: COMM 221 final review",dot:"study",sub221:2},
+    {time:"17:00-19:00",text:"Study Block 3: COMM 221 focus",dot:"study",sub221:2},
+    {time:"19:00-20:00",text:"Dinner break",dot:"dinner"},
+    {time:"20:00-22:00",text:"Study Block 4: light review",dot:"study",sub221:2},
+    {time:"22:30-00:30",text:"Late prep",dot:"study",sub221:2}
+  ]},
+  {n:16,date:"Tue, Jun 23",type:"normal",label:"Exercise + final review",badge:null,tasks:[
+    {time:"10:00-10:30",text:"Wake up & breakfast",dot:"rest"},
+    {time:"10:30-11:30",text:"Exercise",dot:"exercise",ex:1},
+    {time:"12:30-14:00",text:"Study Block 1: COMM 221 final review",dot:"study",sub221:2},
+    {time:"14:30-16:00",text:"Study Block 2: COMM 221 final review",dot:"study",sub221:2},
+    {time:"17:00-19:00",text:"Study Block 3: COMM 221 focus",dot:"study",sub221:2},
+    {time:"19:00-20:00",text:"Dinner break",dot:"dinner"},
+    {time:"20:00-22:00",text:"Study Block 4: light review",dot:"study",sub221:2},
+    {time:"22:30-00:30",text:"Late prep",dot:"study",sub221:2}
+  ]},
+  {n:17,date:"Wed, Jun 24",type:"rest",label:"Pre-exam · Rest",badge:"rest",tasks:[
+    {time:"10:00-10:30",text:"Wake up & breakfast",dot:"rest"},
+    {time:"10:30-11:30",text:"Light study or relax",dot:"rest"},
+    {time:"12:30-14:00",text:"Study Block 1: light COMM 221 prep",dot:"study",sub221:2},
+    {time:"14:30-15:30",text:"Study Block 2: very light review",dot:"study",sub221:1},
+    {time:"17:00-19:00",text:"Study Block 3: light review",dot:"study",sub221:1},
+    {time:"19:00-20:00",text:"Dinner break",dot:"dinner"},
+    {time:"20:00-21:00",text:"Wind down — light reading",dot:"break"},
+    {time:"22:00-02:00",text:"Sleep early — exam tomorrow!",dot:"rest"}
+  ]},
+  {n:18,date:"Thu, Jun 25",type:"exam",label:"COMM 214 Final",badge:"exam",tasks:[
+    {time:"08:00-08:30",text:"Wake up & light breakfast",dot:"rest"},
+    {time:"08:30-09:00",text:"Buffer — prepare for exam",dot:"break"},
+    {time:"09:00-12:00",text:"FINAL EXAM: COMM 214 · Room H423",dot:"exam"},
+    {time:"12:00-14:00",text:"Rest & eat lunch",dot:"break"},
+    {time:"14:00-17:00",text:"Study Block: COMM 221 prep",dot:"study",sub221:3},
+    {time:"17:00-19:00",text:"Study Block: COMM 221 focus",dot:"study",sub221:3},
+    {time:"19:00-20:00",text:"Dinner break",dot:"dinner"},
+    {time:"20:00-22:00",text:"Study Block: light review",dot:"study",sub221:2},
+    {time:"22:30-00:30",text:"Late prep",dot:"study",sub221:2}
+  ]},
+  {n:19,date:"Fri, Jun 26",type:"normal",label:"Exercise + intense review",badge:null,tasks:[
+    {time:"10:00-10:30",text:"Wake up & breakfast",dot:"rest"},
+    {time:"10:30-11:30",text:"Exercise",dot:"exercise",ex:1},
+    {time:"12:30-14:00",text:"Study Block 1: COMM 221 intense",dot:"study",sub221:2},
+    {time:"14:30-16:00",text:"Study Block 2: COMM 221 intense",dot:"study",sub221:2},
+    {time:"17:00-19:00",text:"Study Block 3: COMM 221 intense",dot:"study",sub221:2},
+    {time:"19:00-20:00",text:"Dinner break",dot:"dinner"},
+    {time:"20:00-22:00",text:"Study Block 4: COMM 221 final prep",dot:"study",sub221:2},
+    {time:"22:30-00:30",text:"Late prep",dot:"study",sub221:2}
+  ]},
+  {n:20,date:"Sat, Jun 27",type:"exam",label:"COMM 221 Final",badge:"exam",tasks:[
+    {time:"10:00-13:00",text:"Wake up, breakfast, light prep",dot:"rest"},
+    {time:"13:00-14:00",text:"Light study — final notes review",dot:"study",sub221:1},
+    {time:"14:00-17:00",text:"FINAL EXAM: COMM 221 · Room H407",dot:"exam"},
+    {time:"17:00+",text:"Rest & celebrate!",dot:"rest"}
+  ]}
+];
+
+const state={checked:{},open:{}};
+
+function getBadgeHTML(d){
+  if(!d.badge) return '';
+  const map={exam:'badge-exam',class:'badge-class',rest:'badge-rest',quiz:'badge-quiz'};
+  const labels={exam:'Final exam',class:'Class day',rest:'Rest day',quiz:'Quiz day'};
+  return `<span class="day-badge ${map[d.badge]}">${labels[d.badge]}</span>`;
+}
+
+function getCardClass(d){
+  if(isCompleted(d.n)) return 'day-card completed';
+  if(d.type==='exam') return 'day-card exam';
+  if(d.n===1) return 'day-card active';
+  return 'day-card';
+}
+
+function isCompleted(n){
+  const d=DAYS[n-1];
+  const checkable=d.tasks.filter(t=>t.dot==='study'||t.dot==='exercise'||t.dot==='exam');
+  if(!checkable.length) return false;
+  return checkable.every(t=>state.checked[`${n}-${d.tasks.indexOf(t)}`]);
+}
+
+function calcProgress(){
+  let total=0,done=0,ex214=0,tot214=0,ex221=0,tot221=0,exDone=0,exTotal=0;
+  DAYS.forEach(d=>{
+    d.tasks.forEach((t,i)=>{
+      if(t.dot==='study'||t.dot==='exam'){
+        total++;
+        if(state.checked[`${d.n}-${i}`]) done++;
+        if(t.sub214){tot214+=t.sub214;if(state.checked[`${d.n}-${i}`])ex214+=t.sub214;}
+        if(t.sub221){tot221+=t.sub221;if(state.checked[`${d.n}-${i}`])ex221+=t.sub221;}
+      }
+      if(t.dot==='exercise'){exTotal++;if(state.checked[`${d.n}-${i}`])exDone++;}
+    });
+  });
+  return{total,done,ex214,tot214,ex221,tot221,exDone,exTotal};
+}
+
+function updateStats(){
+  const p=calcProgress();
+  const daysDone=DAYS.filter(d=>isCompleted(d.n)).length;
+  document.getElementById('days-done').textContent=daysDone;
+  document.getElementById('days-left').textContent=20-daysDone;
+  document.getElementById('main-progress').style.width=Math.round(daysDone/20*100)+'%';
+  const pct214=p.tot214?Math.round(p.ex214/p.tot214*100):0;
+  const pct221=p.tot221?Math.round(p.ex221/p.tot221*100):0;
+  const pctAll=p.total?Math.round(p.done/p.total*100):0;
+  document.getElementById('bar-214').style.width=pct214+'%';
+  document.getElementById('bar-221').style.width=pct221+'%';
+  document.getElementById('bar-total').style.width=pctAll+'%';
+  document.getElementById('pct-214').textContent=pct214+'%';
+  document.getElementById('pct-221').textContent=pct221+'%';
+  document.getElementById('total-pct').textContent=pctAll+'% done';
+  document.getElementById('ex-done').textContent=p.exDone;
+  document.getElementById('rest-done').textContent=DAYS.filter(d=>d.type==='rest'&&isCompleted(d.n)).length;
+}
+
+function toggleDay(n){
+  state.open[n]=!state.open[n];
+  renderDays();
+}
+
+function toggleTask(n,i,e){
+  e.stopPropagation();
+  const key=`${n}-${i}`;
+  state.checked[key]=!state.checked[key];
+  renderDays();
+  updateStats();
+}
+
+function renderDays(){
+  const list=document.getElementById('days-list');
+  let html='';
+  const weeks=[[1,7],[8,14],[15,20]];
+  const wlabels=['Week 1 — Jun 8–14','Week 2 — Jun 15–21','Week 3 — Jun 22–27'];
+  weeks.forEach((w,wi)=>{
+    html+=`<div class="week-divider">${wlabels[wi]}</div>`;
+    for(let n=w[0];n<=w[1];n++){
+      const d=DAYS[n-1];
+      const comp=isCompleted(n);
+      const open=state.open[n];
+      const numClass=comp?'completed':d.type==='exam'?'exam':n===1?'active':d.type==='rest'||d.type==='class'?'rest':'upcoming';
+      const cardClass=getCardClass(d);
+      html+=`<div class="${cardClass}" onclick="toggleDay(${n})">
+        <div class="day-header">
+          <div class="day-meta">
+            <div class="day-num ${numClass}">${comp?'<i class="ti ti-check" style="font-size:14px" aria-hidden="true"></i>':n}</div>
+            <div class="day-info">
+              <div class="day-date">${d.date}</div>
+              <div class="day-subtitle">${d.label}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            ${getBadgeHTML(d)}
+            <i class="ti ti-chevron-down chevron${open?' open':''}" aria-hidden="true"></i>
+          </div>
+        </div>`;
+      if(open){
+        html+=`<div class="day-body">`;
+        d.tasks.forEach((t,i)=>{
+          const isCheckable=t.dot==='study'||t.dot==='exercise'||t.dot==='exam';
+          const checked=state.checked[`${n}-${i}`];
+          html+=`<div class="schedule-item">
+            <div class="time-tag">${to12(t.time)}</div>
+            <div class="task-dot dot-${t.dot}"></div>
+            <div class="task-text">${t.text}</div>
+            ${isCheckable?`<div class="task-check${checked?' checked':''}" onclick="toggleTask(${n},${i},event)">${checked?'<i class="ti ti-check" style="font-size:11px" aria-hidden="true"></i>':''}</div>`:''}
+          </div>`;
+        });
+        html+=`</div>`;
+      }
+      html+=`</div>`;
+    }
+  });
+  list.innerHTML=html;
+}
+
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    const tabs=['schedule','progress','tips'];
+    t.classList.toggle('active',tabs[i]===tab);
+  });
+  document.querySelectorAll('.overview-section').forEach(s=>s.classList.remove('visible'));
+  document.getElementById('tab-'+tab).classList.add('visible');
+}
+
+renderDays();
+updateStats();
+</script>
