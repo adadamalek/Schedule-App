@@ -44,7 +44,7 @@ html,body{font-family:'Nunito',sans-serif;font-size:16px;width:100%;max-width:10
 .task-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .dot-214{background:#7F77DD}
 .dot-221{background:#D4537E}
-.dot-exercise{background:#D4537E}
+.dot-exercise{background:#1D9E75}
 .dot-break{background:#B4B2A9}
 .dot-class{background:#D85A30}
 .dot-exam{background:#D85A30}
@@ -145,7 +145,7 @@ html,body{font-family:'Nunito',sans-serif;font-size:16px;width:100%;max-width:10
 </div>
 
 <script>
-const SKEY='malek_study_v2';
+const SKEY='malek_study_v3';
 const ST={checked:{},open:{}};
 
 function save(){try{localStorage.setItem(SKEY,JSON.stringify({checked:ST.checked,open:ST.open}));}catch(e){}}
@@ -162,112 +162,112 @@ function to12(t){
   }).join(' – ');
 }
 
+/* 
+  STANDARD EXERCISE DAY schedule:
+  10:00-10:30  Wake up & breakfast
+  10:30-11:30  Exercise
+  11:30-12:00  Shower & freshen up
+  12:00-14:00  COMM 214 (2 hrs)
+  14:00-14:30  Break
+  14:30-16:30  COMM 221 (2 hrs)
+  16:30-17:00  Buffer
+  19:00-20:00  Dinner
+  20:00-22:00  Evening review (split 1hr each)
+  22:30-00:30  Late prep (split 1hr each)
+
+  STANDARD REST DAY schedule:
+  10:00-10:30  Wake up & breakfast
+  10:30-11:00  Light relax
+  11:00-13:00  COMM 214 (2 hrs)
+  13:00-13:30  Break
+  13:30-15:30  COMM 221 (2 hrs)
+  15:30-16:00  Buffer
+  19:00-20:00  Dinner
+  20:00-22:00  Evening review (split 1hr each)
+  22:30-00:30  Late prep (split 1hr each)
+
+  CLASS DAY (Wed): class 11:45-14:30, then study after
+  14:30-15:00  Transport
+  15:00-17:00  COMM 214 (2 hrs)
+  17:00-17:30  Break
+  17:30-19:00  COMM 221 (1.5 hrs, dinner at 19)
+  19:00-20:00  Dinner
+  20:00-21:30  COMM 221 cont (1.5 hrs = 3 hrs total but split as 2+2 across day)
+  Actually: 15:00-17:00 = 214, 17:30-19:00 + 20:00-21:00 = 221 total 2.5hrs, close enough
+  We'll do: 15:00-17:00 COMM 214, 17:00-17:30 break, 17:30-19:00 COMM 221 pt1, dinner, 20:00-21:30 COMM 221 pt2
+*/
+
+const EX_TASKS = (c214, c221, exNote) => [
+  {t:"10:00-10:30",x:"Wake up & breakfast",d:"rest"},
+  {t:"10:30-11:30",x:exNote||"Exercise",d:"exercise",ex:1},
+  {t:"11:30-12:00",x:"Shower & freshen up",d:"break"},
+  {t:"12:00-14:00",x:c214,d:"214",l214:1,s214:1},
+  {t:"14:00-14:30",x:"Break — snack & stretch",d:"break"},
+  {t:"14:30-16:30",x:c221,d:"221",l221:1,s221:1},
+  {t:"16:30-17:00",x:"Buffer / transition",d:"break"},
+  {t:"19:00-20:00",x:"Dinner break",d:"dinner"},
+  {t:"20:00-21:00",x:"Evening review: "+c214.split(':')[0],d:"214",l214:1,s214:1},
+  {t:"21:00-22:00",x:"Evening review: "+c221.split(':')[0],d:"221",l221:1,s221:1},
+  {t:"22:30-00:30",x:"Late prep: COMM 214 & 221",d:"214",l214:1,s214:1},
+];
+
+const REST_TASKS = (c214, c221) => [
+  {t:"10:00-10:30",x:"Wake up & breakfast",d:"rest"},
+  {t:"10:30-11:00",x:"Light relax",d:"rest"},
+  {t:"11:00-13:00",x:c214,d:"214",l214:1,s214:1},
+  {t:"13:00-13:30",x:"Break — snack & stretch",d:"break"},
+  {t:"13:30-15:30",x:c221,d:"221",l221:1,s221:1},
+  {t:"15:30-16:00",x:"Buffer / transition",d:"break"},
+  {t:"19:00-20:00",x:"Dinner break",d:"dinner"},
+  {t:"20:00-21:00",x:"Evening review: "+c214.split(':')[0],d:"214",l214:1,s214:1},
+  {t:"21:00-22:00",x:"Evening review: "+c221.split(':')[0],d:"221",l221:1,s221:1},
+  {t:"22:30-00:30",x:"Late prep: COMM 214 & 221",d:"214",l214:1,s214:1},
+];
+
+const CLASS_TASKS = (c214, c221) => [
+  {t:"10:00-10:30",x:"Wake up & breakfast",d:"rest"},
+  {t:"10:30-11:30",x:"Light study or relax",d:"rest"},
+  {t:"11:30-11:45",x:"Transport to campus",d:"break"},
+  {t:"11:45-14:30",x:"CLASS: COMM 221",d:"class"},
+  {t:"14:30-15:00",x:"Transport home",d:"break"},
+  {t:"15:00-17:00",x:c214,d:"214",l214:1,s214:1},
+  {t:"17:00-17:30",x:"Break — snack & stretch",d:"break"},
+  {t:"17:30-19:00",x:c221+" (pt.1)",d:"221",l221:1,s221:1},
+  {t:"19:00-20:00",x:"Dinner break",d:"dinner"},
+  {t:"20:00-21:30",x:c221+" (pt.2)",d:"221",l221:1,s221:1},
+  {t:"22:00-23:00",x:"Late review: COMM 214",d:"214",l214:1,s214:1},
+  {t:"23:00-00:30",x:"Late review: COMM 221",d:"221",l221:1,s221:1},
+];
+
 const D=[
-  {n:1,date:"Mon, Jun 8",type:"rest",label:"Rest day",badge:"rest",tasks:[
-    {t:"10:00-10:30",x:"Wake up & breakfast",d:"rest"},
-    {t:"10:30-11:30",x:"Light study or relax",d:"rest"},
-    {t:"12:00-13:30",x:"Midterm review video pt.1",d:"214",l214:1,s214:1},
-    {t:"12:00-13:30",x:"Sessions 1–2: Interest rates & annuities",d:"221",l221:1,s221:1},
-    {t:"13:30-14:00",x:"Break — snack & stretch",d:"break"},
-    {t:"14:00-15:30",x:"Midterm review video pt.1 (cont.)",d:"214",l214:1,s214:1},
-    {t:"14:00-15:30",x:"Sessions 1–2 (cont.)",d:"221",l221:1,s221:1},
-    {t:"17:00-19:00",x:"COMM 214 deeper review",d:"214",l214:1,s214:1},
-    {t:"17:00-19:00",x:"Interest rates practice",d:"221",l221:1,s221:1},
-    {t:"19:00-20:00",x:"Dinner break",d:"dinner"},
-    {t:"20:00-22:00",x:"Light review: COMM 214",d:"214",l214:1,s214:1},
-    {t:"20:00-22:00",x:"Light review: COMM 221",d:"221",l221:1,s221:1},
-    {t:"22:30-00:30",x:"Late prep: COMM 214",d:"214",l214:1,s214:1},
-    {t:"22:30-00:30",x:"Late prep: COMM 221",d:"221",l221:1,s221:1}
-  ]},
-  {n:2,date:"Tue, Jun 9",type:"normal",label:"Exercise + study",badge:null,tasks:[
-    {t:"10:00-10:30",x:"Wake up & breakfast",d:"rest"},
-    {t:"10:30-11:30",x:"Exercise",d:"exercise",ex:1},
-    {t:"11:30-12:00",x:"Shower & freshen up",d:"break"},
-    {t:"12:30-14:00",x:"Midterm review video pt.2",d:"214",l214:1,s214:1},
-    {t:"12:30-14:00",x:"Sessions 2–3: Annuities & DCF",d:"221",l221:1,s221:1},
-    {t:"14:30-16:00",x:"Tutorial 1 (Ch.1&2) preview",d:"214",l214:1,s214:1},
-    {t:"14:30-16:00",x:"Sessions 2–3 (cont.) NPV intro",d:"221",l221:1,s221:1},
-    {t:"17:00-19:00",x:"COMM 214 review",d:"214",l214:1,s214:1},
-    {t:"17:00-19:00",x:"COMM 221 review",d:"221",l221:1,s221:1},
-    {t:"19:00-20:00",x:"Dinner break",d:"dinner"},
-    {t:"20:00-22:00",x:"Light review: COMM 214",d:"214",l214:1,s214:1},
-    {t:"20:00-22:00",x:"Light review: COMM 221",d:"221",l221:1,s221:1},
-    {t:"22:30-00:30",x:"Late prep: COMM 214",d:"214",l214:1,s214:1},
-    {t:"22:30-00:30",x:"Late prep: COMM 221",d:"221",l221:1,s221:1}
-  ]},
-  {n:3,date:"Wed, Jun 10",type:"class",label:"Class day · Rest",badge:"class",tasks:[
-    {t:"10:00-10:30",x:"Wake up & breakfast",d:"rest"},
-    {t:"10:30-11:30",x:"Light study or relax",d:"rest"},
-    {t:"11:45-14:30",x:"CLASS: COMM 221",d:"class"},
-    {t:"14:30-15:00",x:"Transport home",d:"break"},
-    {t:"15:00-17:00",x:"Tutorial 1 (Ch.1&2)",d:"214",l214:1,s214:2},
-    {t:"17:00-19:00",x:"Sessions 3–4: NPV & investment accounts",d:"221",l221:1,s221:2},
-    {t:"19:00-20:00",x:"Dinner break",d:"dinner"},
-    {t:"20:00-22:00",x:"Light review: COMM 214",d:"214",l214:1,s214:1},
-    {t:"20:00-22:00",x:"Light review: COMM 221",d:"221",l221:1,s221:1},
-    {t:"22:30-00:30",x:"Late prep: COMM 214",d:"214",l214:1,s214:1},
-    {t:"22:30-00:30",x:"Late prep: COMM 221",d:"221",l221:1,s221:1}
-  ]},
-  {n:4,date:"Thu, Jun 11",type:"normal",label:"Exercise + study",badge:null,tasks:[
-    {t:"10:00-10:30",x:"Wake up & breakfast",d:"rest"},
-    {t:"10:30-11:30",x:"Exercise",d:"exercise",ex:1},
-    {t:"12:30-14:00",x:"Tutorial 2 (Ch.3)",d:"214",l214:1,s214:1},
-    {t:"12:30-14:00",x:"Sessions 4–5: Asset classes & risk",d:"221",l221:1,s221:1},
-    {t:"14:30-16:00",x:"Tutorial 2 (cont.)",d:"214",l214:1,s214:1},
-    {t:"14:30-16:00",x:"Sessions 4–5 (cont.)",d:"221",l221:1,s221:1},
-    {t:"17:00-19:00",x:"COMM 214 review",d:"214",l214:1,s214:1},
-    {t:"17:00-19:00",x:"COMM 221 review",d:"221",l221:1,s221:1},
-    {t:"19:00-20:00",x:"Dinner break",d:"dinner"},
-    {t:"20:00-22:00",x:"Light review: COMM 214",d:"214",l214:1,s214:1},
-    {t:"20:00-22:00",x:"Light review: COMM 221",d:"221",l221:1,s221:1},
-    {t:"22:30-00:30",x:"Late prep: COMM 214",d:"214",l214:1,s214:1},
-    {t:"22:30-00:30",x:"Late prep: COMM 221",d:"221",l221:1,s221:1}
-  ]},
-  {n:5,date:"Fri, Jun 12",type:"normal",label:"Exercise + study",badge:null,tasks:[
-    {t:"10:00-10:30",x:"Wake up & breakfast",d:"rest"},
-    {t:"10:30-11:30",x:"Exercise",d:"exercise",ex:1},
-    {t:"12:30-14:00",x:"Tutorial 3 (Ch.4)",d:"214",l214:1,s214:1},
-    {t:"12:30-14:00",x:"Sessions 5–6: Risk, diversification & CAPM",d:"221",l221:1,s221:1},
-    {t:"14:30-16:00",x:"Tutorial 3 (cont.)",d:"214",l214:1,s214:1},
-    {t:"14:30-16:00",x:"Sessions 5–6 (cont.)",d:"221",l221:1,s221:1},
-    {t:"17:00-19:00",x:"COMM 214 review",d:"214",l214:1,s214:1},
-    {t:"17:00-19:00",x:"COMM 221 review",d:"221",l221:1,s221:1},
-    {t:"19:00-20:00",x:"Dinner break",d:"dinner"},
-    {t:"20:00-22:00",x:"Light review: COMM 214",d:"214",l214:1,s214:1},
-    {t:"20:00-22:00",x:"Light review: COMM 221",d:"221",l221:1,s221:1},
-    {t:"22:30-00:30",x:"Late prep: COMM 214",d:"214",l214:1,s214:1},
-    {t:"22:30-00:30",x:"Late prep: COMM 221",d:"221",l221:1,s221:1}
-  ]},
-  {n:6,date:"Sat, Jun 13",type:"normal",label:"Exercise + study",badge:null,tasks:[
-    {t:"10:00-10:30",x:"Wake up & breakfast",d:"rest"},
-    {t:"10:30-11:30",x:"Exercise",d:"exercise",ex:1},
-    {t:"12:30-14:00",x:"Tutorial 4&5 (Ch.6&7)",d:"214",l214:1,s214:1},
-    {t:"12:30-14:00",x:"Quiz 4 prep — full review",d:"221",l221:1,s221:1},
-    {t:"14:30-16:00",x:"Tutorial 4&5 (cont.)",d:"214",l214:1,s214:1},
-    {t:"14:30-16:00",x:"Quiz 4 prep (cont.)",d:"221",l221:1,s221:1},
-    {t:"17:00-19:00",x:"COMM 214 review",d:"214",l214:1,s214:1},
-    {t:"17:00-19:00",x:"COMM 221 quiz review",d:"221",l221:1,s221:1},
-    {t:"19:00-20:00",x:"Dinner break",d:"dinner"},
-    {t:"20:00-22:00",x:"Light review: COMM 214",d:"214",l214:1,s214:1},
-    {t:"20:00-22:00",x:"Light review: COMM 221",d:"221",l221:1,s221:1},
-    {t:"22:30-00:30",x:"Late prep: COMM 214",d:"214",l214:1,s214:1},
-    {t:"22:30-00:30",x:"Late prep: COMM 221",d:"221",l221:1,s221:1}
-  ]},
-  {n:7,date:"Sun, Jun 14",type:"normal",label:"Exercise + Quiz 4 prep",badge:null,tasks:[
-    {t:"10:00-10:30",x:"Wake up & breakfast",d:"rest"},
-    {t:"10:30-11:30",x:"Exercise",d:"exercise",ex:1},
-    {t:"12:30-14:00",x:"Tutorial 6 (Ch.8&9)",d:"214",l214:1,s214:1},
-    {t:"12:30-14:00",x:"Submit Quiz 4 + Session 7 equilibria",d:"221",l221:1,s221:2},
-    {t:"14:30-16:00",x:"Tutorial 6 (cont.)",d:"214",l214:1,s214:1},
-    {t:"14:30-16:00",x:"Session 7 (cont.)",d:"221",l221:1,s221:2},
-    {t:"17:00-19:00",x:"COMM 214 review",d:"214",l214:1,s214:1},
-    {t:"17:00-19:00",x:"COMM 221 review",d:"221",l221:1,s221:2},
-    {t:"19:00-20:00",x:"Dinner break",d:"dinner"},
-    {t:"20:00-22:00",x:"Light review: COMM 214",d:"214",l214:1,s214:1},
-    {t:"20:00-22:00",x:"Light review: COMM 221",d:"221",l221:1,s221:2},
-    {t:"22:30-00:30",x:"Late prep: COMM 214",d:"214",l214:1,s214:1},
-    {t:"22:30-00:30",x:"Late prep: COMM 221",d:"221",l221:1,s221:2}
-  ]},
+  {n:1,date:"Mon, Jun 8",type:"rest",label:"Rest day",badge:"rest",tasks:REST_TASKS(
+    "Midterm review video pt.1",
+    "Sessions 1–2: Interest rates & annuities"
+  )},
+  {n:2,date:"Tue, Jun 9",type:"normal",label:"Exercise + study",badge:null,tasks:EX_TASKS(
+    "Midterm review video pt.2",
+    "Sessions 2–3: Annuities & DCF"
+  )},
+  {n:3,date:"Wed, Jun 10",type:"class",label:"Class day · Rest",badge:"class",tasks:CLASS_TASKS(
+    "Tutorial 1 (Ch.1&2)",
+    "Sessions 3–4: NPV & investment accounts"
+  )},
+  {n:4,date:"Thu, Jun 11",type:"normal",label:"Exercise + study",badge:null,tasks:EX_TASKS(
+    "Tutorial 2 (Ch.3)",
+    "Sessions 4–5: Asset classes & risk"
+  )},
+  {n:5,date:"Fri, Jun 12",type:"normal",label:"Exercise + study",badge:null,tasks:EX_TASKS(
+    "Tutorial 3 (Ch.4)",
+    "Sessions 5–6: Risk, diversification & CAPM"
+  )},
+  {n:6,date:"Sat, Jun 13",type:"normal",label:"Exercise + study",badge:null,tasks:EX_TASKS(
+    "Tutorial 4&5 (Ch.6&7)",
+    "Quiz 4 prep — full review"
+  )},
+  {n:7,date:"Sun, Jun 14",type:"normal",label:"Exercise + Quiz 4 prep",badge:null,tasks:EX_TASKS(
+    "Tutorial 6 (Ch.8&9)",
+    "Submit Quiz 4 + Session 7: Equilibria"
+  )},
   {n:8,date:"Mon, Jun 15",type:"exam",label:"Quiz 4 + Class · Rest",badge:"quiz",tasks:[
     {t:"10:00-10:30",x:"Wake up & breakfast",d:"rest"},
     {t:"10:30-11:30",x:"Quiz 4: COMM 221",d:"exam"},
@@ -275,172 +275,87 @@ const D=[
     {t:"11:45-14:30",x:"CLASS: COMM 221",d:"class"},
     {t:"14:30-15:00",x:"Transport home",d:"break"},
     {t:"15:00-17:00",x:"Tutorial 7 (Ch.10)",d:"214",l214:1,s214:1},
-    {t:"15:00-17:00",x:"Session 8: Supply & demand distortions",d:"221",l221:1,s221:2},
-    {t:"17:00-19:00",x:"COMM 214 review",d:"214",l214:1,s214:1},
-    {t:"17:00-19:00",x:"COMM 221 review",d:"221",l221:1,s221:2},
+    {t:"17:00-17:30",x:"Break — snack & stretch",d:"break"},
+    {t:"17:30-19:00",x:"Session 8: Supply & demand (pt.1)",d:"221",l221:1,s221:1},
     {t:"19:00-20:00",x:"Dinner break",d:"dinner"},
-    {t:"20:00-22:00",x:"Light review: COMM 214",d:"214",l214:1,s214:1},
-    {t:"20:00-22:00",x:"Light review: COMM 221",d:"221",l221:1,s221:2},
-    {t:"22:30-00:30",x:"Late prep: COMM 214",d:"214",l214:1,s214:1},
-    {t:"22:30-00:30",x:"Late prep: COMM 221",d:"221",l221:1,s221:2}
+    {t:"20:00-21:30",x:"Session 8: Supply & demand (pt.2)",d:"221",l221:1,s221:1},
+    {t:"22:00-23:00",x:"Late review: COMM 214",d:"214",l214:1,s214:1},
+    {t:"23:00-00:30",x:"Late review: COMM 221",d:"221",l221:1,s221:1},
   ]},
-  {n:9,date:"Tue, Jun 16",type:"normal",label:"Exercise + study",badge:null,tasks:[
-    {t:"10:00-10:30",x:"Wake up & breakfast",d:"rest"},
-    {t:"10:30-11:30",x:"Exercise",d:"exercise",ex:1},
-    {t:"12:30-14:00",x:"Tutorial 8 (Ch.13)",d:"214",l214:1,s214:1},
-    {t:"12:30-14:00",x:"Session 9: Equilibria & resource allocation",d:"221",l221:1,s221:2},
-    {t:"14:30-16:00",x:"Tutorial 8 (cont.)",d:"214",l214:1,s214:1},
-    {t:"14:30-16:00",x:"Session 9 (cont.)",d:"221",l221:1,s221:2},
-    {t:"17:00-19:00",x:"COMM 214 review",d:"214",l214:1,s214:1},
-    {t:"17:00-19:00",x:"COMM 221 review",d:"221",l221:1,s221:2},
-    {t:"19:00-20:00",x:"Dinner break",d:"dinner"},
-    {t:"20:00-22:00",x:"Light review: COMM 214",d:"214",l214:1,s214:1},
-    {t:"20:00-22:00",x:"Light review: COMM 221",d:"221",l221:1,s221:2},
-    {t:"22:30-00:30",x:"Late prep: COMM 214",d:"214",l214:1,s214:1},
-    {t:"22:30-00:30",x:"Late prep: COMM 221",d:"221",l221:1,s221:2}
-  ]},
-  {n:10,date:"Wed, Jun 17",type:"class",label:"Class day · Rest",badge:"class",tasks:[
-    {t:"10:00-10:30",x:"Wake up & breakfast",d:"rest"},
-    {t:"10:30-11:30",x:"Light study or relax",d:"rest"},
-    {t:"11:45-14:30",x:"CLASS: COMM 221",d:"class"},
-    {t:"14:30-15:00",x:"Transport home",d:"break"},
-    {t:"15:00-17:00",x:"Tutorial 9 (Ch.14)",d:"214",l214:1,s214:2},
-    {t:"17:00-19:00",x:"Sessions 10–11: Social welfare & history",d:"221",l221:1,s221:2},
-    {t:"19:00-20:00",x:"Dinner break",d:"dinner"},
-    {t:"20:00-22:00",x:"COMM 214 evening review",d:"214",l214:1,s214:1},
-    {t:"20:00-22:00",x:"COMM 221 evening review",d:"221",l221:1,s221:2},
-    {t:"22:30-00:30",x:"Late prep: COMM 214",d:"214",l214:1,s214:1},
-    {t:"22:30-00:30",x:"Late prep: COMM 221",d:"221",l221:1,s221:2}
-  ]},
-  {n:11,date:"Thu, Jun 18",type:"normal",label:"Exercise + study",badge:null,tasks:[
-    {t:"10:00-10:30",x:"Wake up & breakfast",d:"rest"},
-    {t:"10:30-11:30",x:"Exercise",d:"exercise",ex:1},
-    {t:"12:30-14:00",x:"Tutorial 10 (Ch.15)",d:"214",l214:1,s214:1},
-    {t:"12:30-14:00",x:"Quiz 5 prep — full review",d:"221",l221:1,s221:2},
-    {t:"14:30-16:00",x:"Tutorial 10 (cont.)",d:"214",l214:1,s214:1},
-    {t:"14:30-16:00",x:"Quiz 5 prep (cont.)",d:"221",l221:1,s221:2},
-    {t:"17:00-19:00",x:"COMM 214 review",d:"214",l214:1,s214:1},
-    {t:"17:00-19:00",x:"COMM 221 quiz review",d:"221",l221:1,s221:2},
-    {t:"19:00-20:00",x:"Dinner break",d:"dinner"},
-    {t:"20:00-22:00",x:"Light review: COMM 214",d:"214",l214:1,s214:1},
-    {t:"20:00-22:00",x:"Light review: COMM 221",d:"221",l221:1,s221:2},
-    {t:"22:30-00:30",x:"Late prep: COMM 214",d:"214",l214:1,s214:1},
-    {t:"22:30-00:30",x:"Late prep: COMM 221",d:"221",l221:1,s221:2}
-  ]},
-  {n:12,date:"Fri, Jun 19",type:"normal",label:"Exercise + study",badge:null,tasks:[
-    {t:"10:00-10:30",x:"Wake up & breakfast",d:"rest"},
-    {t:"10:30-11:30",x:"Exercise",d:"exercise",ex:1},
-    {t:"12:30-14:00",x:"Full notes review Ch.1–7",d:"214",l214:1,s214:1},
-    {t:"12:30-14:00",x:"Quiz 5 prep continued",d:"221",l221:1,s221:2},
-    {t:"14:30-16:00",x:"Full notes Ch.1–7 (cont.)",d:"214",l214:1,s214:1},
-    {t:"14:30-16:00",x:"Quiz 5 prep (cont.)",d:"221",l221:1,s221:2},
-    {t:"17:00-19:00",x:"COMM 214 review",d:"214",l214:1,s214:1},
-    {t:"17:00-19:00",x:"COMM 221 review",d:"221",l221:1,s221:2},
-    {t:"19:00-20:00",x:"Dinner break",d:"dinner"},
-    {t:"20:00-22:00",x:"Light review: COMM 214",d:"214",l214:1,s214:1},
-    {t:"20:00-22:00",x:"Light review: COMM 221",d:"221",l221:1,s221:2},
-    {t:"22:30-00:30",x:"Late prep: COMM 214",d:"214",l214:1,s214:1},
-    {t:"22:30-00:30",x:"Late prep: COMM 221",d:"221",l221:1,s221:2}
-  ]},
-  {n:13,date:"Sat, Jun 20",type:"normal",label:"Exercise + practice exam",badge:null,tasks:[
-    {t:"10:00-10:30",x:"Wake up & breakfast",d:"rest"},
-    {t:"10:30-11:30",x:"Exercise",d:"exercise",ex:1},
-    {t:"12:30-14:00",x:"Full notes review Ch.8–15",d:"214",l214:1,s214:1},
-    {t:"12:30-14:00",x:"Submit Quiz 5 + light COMM 221 review",d:"221",l221:1,s221:2},
-    {t:"14:30-16:00",x:"Ch.8–15 (cont.)",d:"214",l214:1,s214:1},
-    {t:"14:30-16:00",x:"COMM 221 light review (cont.)",d:"221",l221:1,s221:2},
-    {t:"17:00-19:00",x:"COMM 214 review",d:"214",l214:1,s214:1},
-    {t:"17:00-19:00",x:"COMM 221 review",d:"221",l221:1,s221:2},
-    {t:"19:00-20:00",x:"Dinner break",d:"dinner"},
-    {t:"20:00-22:00",x:"Light review: COMM 214",d:"214",l214:1,s214:1},
-    {t:"20:00-22:00",x:"Light review: COMM 221",d:"221",l221:1,s221:2},
-    {t:"22:30-00:30",x:"Late prep: COMM 214",d:"214",l214:1,s214:1},
-    {t:"22:30-00:30",x:"Late prep: COMM 221",d:"221",l221:1,s221:2}
-  ]},
-  {n:14,date:"Sun, Jun 21",type:"normal",label:"Exercise + light review",badge:null,tasks:[
-    {t:"10:00-10:30",x:"Wake up & breakfast",d:"rest"},
-    {t:"10:30-11:30",x:"Exercise",d:"exercise",ex:1},
-    {t:"12:30-14:00",x:"COMM 214 practice problems",d:"214",l214:1,s214:1},
-    {t:"12:30-14:00",x:"COMM 221 heavy review begins",d:"221",l221:1,s221:2},
-    {t:"14:30-16:00",x:"COMM 214 practice (cont.)",d:"214",l214:1,s214:1},
-    {t:"14:30-16:00",x:"COMM 221 heavy review (cont.)",d:"221",l221:1,s221:2},
-    {t:"17:00-19:00",x:"COMM 214 wind down review",d:"214",l214:1,s214:1},
-    {t:"17:00-19:00",x:"COMM 221 review",d:"221",l221:1,s221:2},
-    {t:"19:00-20:00",x:"Dinner break",d:"dinner"},
-    {t:"20:00-22:00",x:"Light review: COMM 214",d:"214",l214:1,s214:1},
-    {t:"20:00-22:00",x:"Light review: COMM 221",d:"221",l221:1,s221:1},
-    {t:"22:30-00:30",x:"Late prep: COMM 214",d:"214",l214:1,s214:1},
-    {t:"22:30-00:30",x:"Late prep: COMM 221",d:"221",l221:1,s221:1}
-  ]},
-  {n:15,date:"Mon, Jun 22",type:"rest",label:"Rest day",badge:"rest",tasks:[
-    {t:"10:00-10:30",x:"Wake up & breakfast",d:"rest"},
-    {t:"10:30-11:30",x:"Light study or relax",d:"rest"},
-    {t:"12:30-14:00",x:"COMM 214 mock exam + weak areas",d:"214",l214:1,s214:2},
-    {t:"12:30-14:00",x:"COMM 221 heavy review",d:"221",l221:1,s221:2},
-    {t:"14:30-16:00",x:"COMM 214 mock exam (cont.)",d:"214",l214:1,s214:2},
-    {t:"14:30-16:00",x:"COMM 221 heavy review (cont.)",d:"221",l221:1,s221:2},
-    {t:"17:00-19:00",x:"COMM 214 final review",d:"214",l214:1,s214:2},
-    {t:"17:00-19:00",x:"COMM 221 final review",d:"221",l221:1,s221:2},
-    {t:"19:00-20:00",x:"Dinner break",d:"dinner"},
-    {t:"20:00-22:00",x:"Light review: COMM 214",d:"214",l214:1,s214:1},
-    {t:"20:00-22:00",x:"Light review: COMM 221",d:"221",l221:1,s221:2},
-    {t:"22:30-00:30",x:"Late prep: COMM 214",d:"214",l214:1,s214:1},
-    {t:"22:30-00:30",x:"Late prep: COMM 221",d:"221",l221:1,s221:2}
-  ]},
-  {n:16,date:"Tue, Jun 23",type:"normal",label:"Exercise + final review",badge:null,tasks:[
-    {t:"10:00-10:30",x:"Wake up & breakfast",d:"rest"},
-    {t:"10:30-11:30",x:"Exercise",d:"exercise",ex:1},
-    {t:"12:30-14:00",x:"COMM 214 final weak spots",d:"214",l214:1,s214:1},
-    {t:"12:30-14:00",x:"COMM 221 full content review",d:"221",l221:1,s221:2},
-    {t:"14:30-16:00",x:"COMM 214 weak spots (cont.)",d:"214",l214:1,s214:1},
-    {t:"14:30-16:00",x:"COMM 221 content review (cont.)",d:"221",l221:1,s221:2},
-    {t:"17:00-19:00",x:"COMM 214 final review",d:"214",l214:1,s214:1},
-    {t:"17:00-19:00",x:"COMM 221 final review",d:"221",l221:1,s221:2},
-    {t:"19:00-20:00",x:"Dinner break",d:"dinner"},
-    {t:"20:00-22:00",x:"Light review: COMM 214",d:"214",l214:1,s214:1},
-    {t:"20:00-22:00",x:"Light review: COMM 221",d:"221",l221:1,s221:2},
-    {t:"22:30-00:30",x:"Late prep: COMM 214",d:"214",l214:1,s214:1},
-    {t:"22:30-00:30",x:"Late prep: COMM 221",d:"221",l221:1,s221:2}
-  ]},
+  {n:9,date:"Tue, Jun 16",type:"normal",label:"Exercise + study",badge:null,tasks:EX_TASKS(
+    "Tutorial 8 (Ch.13)",
+    "Session 9: Equilibria & resource allocation"
+  )},
+  {n:10,date:"Wed, Jun 17",type:"class",label:"Class day · Rest",badge:"class",tasks:CLASS_TASKS(
+    "Tutorial 9 (Ch.14)",
+    "Sessions 10–11: Social welfare & history"
+  )},
+  {n:11,date:"Thu, Jun 18",type:"normal",label:"Exercise + study",badge:null,tasks:EX_TASKS(
+    "Tutorial 10 (Ch.15)",
+    "Quiz 5 prep — full review"
+  )},
+  {n:12,date:"Fri, Jun 19",type:"normal",label:"Exercise + study",badge:null,tasks:EX_TASKS(
+    "Full notes review Ch.1–7",
+    "Quiz 5 prep continued"
+  )},
+  {n:13,date:"Sat, Jun 20",type:"normal",label:"Exercise + practice exam",badge:null,tasks:EX_TASKS(
+    "Full notes review Ch.8–15",
+    "Submit Quiz 5 + light COMM 221 review"
+  )},
+  {n:14,date:"Sun, Jun 21",type:"normal",label:"Exercise + light review",badge:null,tasks:EX_TASKS(
+    "COMM 214 practice problems",
+    "COMM 221 heavy review begins"
+  )},
+  {n:15,date:"Mon, Jun 22",type:"rest",label:"Rest day",badge:"rest",tasks:REST_TASKS(
+    "COMM 214 mock exam + weak areas",
+    "COMM 221 heavy review"
+  )},
+  {n:16,date:"Tue, Jun 23",type:"normal",label:"Exercise + final review",badge:null,tasks:EX_TASKS(
+    "COMM 214 final weak spots only",
+    "COMM 221 full content review"
+  )},
   {n:17,date:"Wed, Jun 24",type:"rest",label:"Pre-exam · Rest",badge:"rest",tasks:[
     {t:"10:00-10:30",x:"Wake up & breakfast",d:"rest"},
-    {t:"10:30-11:30",x:"Light study or relax",d:"rest"},
-    {t:"12:30-14:00",x:"Light review only — rest early",d:"214",l214:1,s214:1},
-    {t:"12:30-14:00",x:"COMM 221 practice problems",d:"221",l221:1,s221:1},
-    {t:"14:30-15:30",x:"Very light COMM 214 review",d:"214",l214:1,s214:1},
-    {t:"14:30-15:30",x:"Very light COMM 221 review",d:"221",l221:1,s221:1},
-    {t:"17:00-19:00",x:"Light review: COMM 214",d:"214",l214:1,s214:1},
-    {t:"17:00-19:00",x:"Light review: COMM 221",d:"221",l221:1,s221:1},
+    {t:"10:30-11:00",x:"Light relax",d:"rest"},
+    {t:"11:00-13:00",x:"Light review only — rest early",d:"214",l214:1,s214:1},
+    {t:"13:00-13:30",x:"Break — snack & stretch",d:"break"},
+    {t:"13:30-15:30",x:"COMM 221 practice problems",d:"221",l221:1,s221:1},
+    {t:"15:30-16:00",x:"Buffer / transition",d:"break"},
     {t:"19:00-20:00",x:"Dinner break",d:"dinner"},
-    {t:"20:00-21:00",x:"Wind down — light reading",d:"break"},
-    {t:"22:00-02:00",x:"Sleep early — exam tomorrow!",d:"rest"}
+    {t:"20:00-21:00",x:"Very light COMM 214 review",d:"214",l214:1,s214:1},
+    {t:"21:00-21:30",x:"Wind down — light reading",d:"break"},
+    {t:"22:00-02:00",x:"Sleep early — exam tomorrow!",d:"rest"},
   ]},
   {n:18,date:"Thu, Jun 25",type:"exam",label:"COMM 214 Final Exam",badge:"exam",tasks:[
     {t:"08:00-08:30",x:"Wake up & light breakfast",d:"rest"},
     {t:"08:30-09:00",x:"Buffer — prepare for exam",d:"break"},
     {t:"09:00-12:00",x:"FINAL EXAM: COMM 214 · H423",d:"exam"},
-    {t:"12:00-14:00",x:"Rest & eat lunch",d:"break"},
-    {t:"14:00-17:00",x:"COMM 221 intensive prep",d:"221",l221:1,s221:3},
-    {t:"17:00-19:00",x:"COMM 221 focus session",d:"221",l221:1,s221:3},
+    {t:"12:00-13:00",x:"Rest & eat lunch",d:"break"},
+    {t:"13:00-15:00",x:"COMM 221 intensive prep",d:"221",l221:1,s221:1},
+    {t:"15:00-15:30",x:"Break",d:"break"},
+    {t:"15:30-17:30",x:"COMM 221 focus session",d:"221",l221:1,s221:1},
     {t:"19:00-20:00",x:"Dinner break",d:"dinner"},
-    {t:"20:00-22:00",x:"COMM 221 light review",d:"221",l221:1,s221:2},
-    {t:"22:30-00:30",x:"COMM 221 late prep",d:"221",l221:1,s221:2}
+    {t:"20:00-22:00",x:"COMM 221 evening review",d:"221",l221:1,s221:1},
+    {t:"22:30-00:30",x:"COMM 221 late prep",d:"221",l221:1,s221:1},
   ]},
   {n:19,date:"Fri, Jun 26",type:"normal",label:"Exercise + intense review",badge:null,tasks:[
     {t:"10:00-10:30",x:"Wake up & breakfast",d:"rest"},
     {t:"10:30-11:30",x:"Exercise",d:"exercise",ex:1},
-    {t:"12:30-14:00",x:"COMM 221 intense review",d:"221",l221:1,s221:2},
-    {t:"14:30-16:00",x:"COMM 221 intense review (cont.)",d:"221",l221:1,s221:2},
-    {t:"17:00-19:00",x:"COMM 221 intense session",d:"221",l221:1,s221:2},
+    {t:"11:30-12:00",x:"Shower & freshen up",d:"break"},
+    {t:"12:00-14:00",x:"COMM 221 intense review (block 1)",d:"221",l221:1,s221:1},
+    {t:"14:00-14:30",x:"Break — snack & stretch",d:"break"},
+    {t:"14:30-16:30",x:"COMM 221 intense review (block 2)",d:"221",l221:1,s221:1},
+    {t:"16:30-17:00",x:"Buffer / transition",d:"break"},
     {t:"19:00-20:00",x:"Dinner break",d:"dinner"},
-    {t:"20:00-22:00",x:"COMM 221 final prep",d:"221",l221:1,s221:2},
-    {t:"22:30-00:30",x:"COMM 221 late prep",d:"221",l221:1,s221:2}
+    {t:"20:00-22:00",x:"COMM 221 final prep",d:"221",l221:1,s221:1},
+    {t:"22:30-00:30",x:"COMM 221 late prep",d:"221",l221:1,s221:1},
   ]},
   {n:20,date:"Sat, Jun 27",type:"exam",label:"COMM 221 Final Exam",badge:"exam",tasks:[
-    {t:"10:00-13:00",x:"Wake up, breakfast, light prep",d:"rest"},
-    {t:"13:00-14:00",x:"Final notes review: COMM 221",d:"221",l221:1,s221:1},
+    {t:"10:00-12:00",x:"Wake up, breakfast, light prep",d:"rest"},
+    {t:"12:00-13:00",x:"Final notes review: COMM 221",d:"221",l221:1,s221:1},
+    {t:"13:00-14:00",x:"Buffer — prepare for exam",d:"break"},
     {t:"14:00-17:00",x:"FINAL EXAM: COMM 221 · H407",d:"exam"},
-    {t:"17:00+",x:"Rest & celebrate!",d:"rest"}
+    {t:"17:00+",x:"Rest & celebrate!",d:"rest"},
   ]}
 ];
 
